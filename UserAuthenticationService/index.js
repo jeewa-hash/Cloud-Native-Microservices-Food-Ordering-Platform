@@ -30,13 +30,8 @@ app.use(
   })
 );
 
-
-
-
-
-
 app.get('/', (req, res) => {
-  res.send('order management backend is WORKING');
+  res.send('User Authentication Service backend is WORKING');
 });
 
 const port = process.env.PORT || 4040;
