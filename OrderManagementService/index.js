@@ -12,7 +12,8 @@ const app = express();
 // ----------------------
 const allowedOrigins = [
   'http://localhost:3000', // frontend URL
-  'http://127.0.0.1:3000', // another dev URL
+  'http://127.0.0.1:3000', 
+  'http://localhost:5173',// another dev URL
   // add other allowed origins here
 ];
 
