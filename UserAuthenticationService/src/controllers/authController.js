@@ -81,8 +81,8 @@ export const login = async (req, res) => {
 
         const { userName, password } = value;
 
-        // 2. Find user by userName
-        const user = await User.findOne({ userName });
+        // 2. Find user by userName or email
+        const user = await User.findOne({ $or: [{ userName: userName }, { email: userName }] });
         if (!user) {
             return res.status(401).json({ message: "Invalid username or password" });
         }

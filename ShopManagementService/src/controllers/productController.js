@@ -12,9 +12,9 @@ export const addProduct = async (req, res) => {
 
     // --- Integration Point: Auth Service එකෙන් දත්ත ලබා ගැනීම ---
     try {
-      // .env එකේ AUTH_SERVICE_URL (උදා: http://auth-service:5000) තිබිය යුතුය
+
       const authResponse = await axios.get(`${process.env.AUTH_SERVICE_URL}/api/users/${shopId}`);
-      
+
       if (authResponse.data) {
         shopName = authResponse.data.name || authResponse.data.username;
         shopLogo = authResponse.data.logo || "";
@@ -65,7 +65,7 @@ export const getProductsByShop = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     // භාණ්ඩය අයිති shop එකටම පමණක් update කිරීමට ඉඩ දීම (Security principle [cite: 38])
     if (product && product.shopId.toString() === req.user.id) {
       Object.assign(product, req.body);
@@ -83,7 +83,7 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (product && product.shopId.toString() === req.user.id) {
       await product.deleteOne();
       res.json({ message: "Product removed" });
