@@ -1,75 +1,55 @@
 import Cart from "../models/Cart.js";
 import axios from "axios";
 
-const MENU_SERVICE_URL = process.env.MENU_SERVICE_URL;
+const SHOP_SERVICE_URL = process.env.SHOP_SERVICE_URL;
+const sameProduct = (a, b) => a.toString() === b.toString();
 
-// Utility to compare sides
-const sameSides = (a = [], b = []) =>
-  a.length === b.length && a.every((s, i) => s.name === b[i].name && s.price === b[i].price);
-
-// Fetch menu+restaurant details from menu service
-async function fetchMenuWithRestaurant(menuId) {
+// Fetch product from Shop Service
+async function fetchProduct(productId) {
   try {
-    const response = await axios.get(`${MENU_SERVICE_URL}/menu/${menuId}/with-restaurant`);
-    return response.data.data || null;
+    const response = await axios.get(`${SHOP_SERVICE_URL}?id=${productId}`);
+    const product = Array.isArray(response.data) ? response.data[0] : response.data;
+    return product || null;
   } catch (error) {
-    console.error("Menu with restaurant fetch failed:", error.message);
+    console.error("Product fetch failed:", error.message);
     return null;
   }
 }
 
+
 // Add item to cart
+
 export const addToCart = async (req, res) => {
   try {
-    const { menuId, sides = [], quantity = 1 } = req.body;
-    const userId = req.userId;
+    const userId = req.userId; 
+    const { productId, quantity = 1 } = req.body;
+    if (!productId) return res.status(400).json({ success: false, message: "productId is required" });
 
-    // Fetch menu and restaurant details in one call
-    const menu = await fetchMenuWithRestaurant(menuId);
-    if (!menu) {
-      return res.status(404).json({ success: false, message: "Menu not found" });
-    }
-    if (!menu.restaurant || !menu.restaurant._id) {
-      return res.status(404).json({ success: false, message: "Restaurant not found" });
-    }
-
-    // Get or create user's cart
     let cart = await Cart.findOne({ user: userId });
     if (!cart) cart = new Cart({ user: userId, items: [] });
 
-    // Find existing item
-    const existingItem = cart.items.find(item =>
-      item.menu.toString() === menuId && sameSides(item.sides, sides)
-    );
+    const product = await fetchProduct(productId);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
+    const existingItem = cart.items.find(item => sameProduct(item.product, productId));
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
       cart.items.push({
-        menu: menuId,
-        name: menu.name,
-        price: menu.price,
-        image: menu.image,
+        product: productId,
+        name: product.name,
+        price: product.price,
+        image: product.image,
         quantity,
-        sides,
-        restaurant: {
-          _id: menu.restaurant._id,
-          name: menu.restaurant.name,
-          logo: menu.restaurant.logo,
-          address: menu.restaurant.address,
-          email: menu.restaurant.email,
-          contactNumber: menu.restaurant.contactNumber,
-          coverImage: menu.restaurant.coverImage,
-          availableTime: menu.restaurant.availableTime
-        }
+        shop: { _id: product.shopId, name: product.shopName, logo: product.shopLogo }
       });
     }
 
     await cart.save();
-    const cartData = await Cart.findById(cart._id).lean();
+    const cartData = await Cart.findOne({ user: userId }).lean();
     res.json({ success: true, cart: cartData });
   } catch (error) {
-    console.error("Cart error:", error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -77,58 +57,68 @@ export const addToCart = async (req, res) => {
 // Get user's cart
 export const getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.userId }).lean();
-    if (!cart || !cart.items || cart.items.length === 0) {
-      return res.json({ success: true, cart: { items: [] } });
-    }
-    res.json({ success: true, cart });
+    const userId = req.userId;
+    const cart = await Cart.findOne({ user: userId }).lean();
+    res.json({ success: true, cart: cart || { items: [] } });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error." });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// Update quantity of a cart item
+// Update quantity
 export const updateCartQuantity = async (req, res) => {
   try {
-    const { menuId, sides, quantity } = req.body;
     const userId = req.userId;
+    const { productId, quantity } = req.body;
+    if (!productId) return res.status(400).json({ success: false, message: "productId is required" });
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
     cart.items = cart.items
-      .map(item =>
-        item.menu.toString() === menuId && sameSides(item.sides, sides)
-          ? { ...item.toObject(), quantity }
-          : item
-      )
+      .map(item => sameProduct(item.product, productId) ? { ...item.toObject(), quantity } : item)
       .filter(item => item.quantity > 0);
 
     await cart.save();
-    const cartData = await Cart.findById(cart._id).lean();
-    res.json({ success: true, cart: cartData });
+    res.json({ success: true, cart: await Cart.findOne({ user: userId }).lean() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error." });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// Remove item from cart
+// Remove single item
 export const removeFromCart = async (req, res) => {
   try {
-    const { menuId, sides } = req.body;
     const userId = req.userId;
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ success: false, message: "productId is required" });
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-    cart.items = cart.items.filter(item =>
-      !(item.menu.toString() === menuId && sameSides(item.sides, sides))
-    );
-
+    cart.items = cart.items.filter(item => !sameProduct(item.product, productId));
     await cart.save();
-    const cartData = await Cart.findById(cart._id).lean();
-    res.json({ success: true, cart: cartData });
+    res.json({ success: true, cart: await Cart.findOne({ user: userId }).lean() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error." });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Clear cart
+export const clearCart = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
+
+    cart.items = [];
+    await cart.save();
+    res.json({ success: true, message: "Cart cleared", cart: await Cart.findOne({ user: userId }).lean() });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

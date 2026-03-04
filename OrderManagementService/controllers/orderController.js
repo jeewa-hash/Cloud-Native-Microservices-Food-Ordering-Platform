@@ -1,262 +1,164 @@
-import "../models/User.js";
-import "../models/restaurantmodel.js";
-import "../models/menumodel.js";
-import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
+import Order from "../models/Order.js";
 import mongoose from "mongoose";
 import axios from "axios";
 
-const RESTAURANT_SERVICE_URL = process.env.RESTAURANT_SERVICE_URL;
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL;
+const SHOP_SERVICE_URL = process.env.SHOP_SERVICE_URL;
 
-
-// -----------------------------
-// OPTIONAL: Fetch restaurant
-// -----------------------------
-async function fetchRestaurant(restaurantId) {
+// Optional: fetch product details from Shop service
+async function fetchProduct(productId) {
   try {
-    const response = await axios.get(
-      `${RESTAURANT_SERVICE_URL}/restaurant/${restaurantId}`
-    );
-    return response.data.data || null;
+    const response = await axios.get(`${SHOP_SERVICE_URL}/products/${productId}`);
+    return response.data || null;
   } catch (error) {
-    console.error("Restaurant fetch failed:", error.message);
+    console.error("Product fetch failed:", error.message);
     return null;
   }
 }
 
-// -----------------------------
-// OPTIONAL: Fetch user
-// -----------------------------
-async function fetchUser(userId) {
-  try {
-    const response = await axios.get(
-      `${USER_SERVICE_URL}/user/${userId}`
-    );
-    return response.data.data || null;
-  } catch (error) {
-    console.error("User fetch failed:", error.message);
-    return null;
-  }
-}
-
-// ==========================================================
-// CHECKOUT ORDER 
-// ==========================================================
+// CHECKOUT ORDER
 export const checkoutOrder = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
     await session.startTransaction();
 
-    const {
-      address,
-      phone,
-      paymentMethod = "cod",
-      deliveryType,
-      instructions = "",
-      shippingFee = 109,
-    } = req.body;
+    const { address, phone, paymentMethod = "cod", deliveryType, instructions = "", shippingFee = 109 } = req.body;
 
     // Validate required fields
     const requiredFields = ["address", "phone", "deliveryType"];
-    const missingFields = requiredFields.filter(
-      (field) => !req.body[field]
-    );
-
-    if (missingFields.length > 0) {
+    const missingFields = requiredFields.filter(f => !req.body[f]);
+    if (missingFields.length) {
       await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-      });
+      return res.status(400).json({ success: false, message: `Missing required fields: ${missingFields.join(", ")}` });
     }
 
-    // Get cart
+    // Get user's cart
     const cart = await Cart.findOne({ user: req.userId }).session(session);
-
     if (!cart || cart.items.length === 0) {
       await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
-        message: "Your cart is empty",
-      });
+      return res.status(400).json({ success: false, message: "Your cart is empty" });
     }
 
-    // Group items by restaurant
-    const itemsByRestaurant = {};
-
-    cart.items.forEach((item) => {
-      const restId =
-        typeof item.restaurant === "object"
-          ? item.restaurant._id
-          : item.restaurant;
-
-      if (!itemsByRestaurant[restId]) {
-        itemsByRestaurant[restId] = [];
-      }
-
-      itemsByRestaurant[restId].push(item);
+    // Group items by shop
+    const itemsByShop = {};
+    cart.items.forEach(item => {
+      const shopId = item.shop._id;
+      if (!itemsByShop[shopId]) itemsByShop[shopId] = [];
+      itemsByShop[shopId].push(item);
     });
 
     const createdOrders = [];
 
-    for (const [restaurantId, items] of Object.entries(
-      itemsByRestaurant
-    )) {
-      const validatedItems = items.map((item) => ({
-        menu: item.menu,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-        quantity: item.quantity,
-        sides: (item.sides || []).map((side) => ({
-          name: side.name,
-          price: side.price,
-        })),
-      }));
+    for (const [shopId, items] of Object.entries(itemsByShop)) {
+      const validatedItems = [];
+      let subtotal = 0;
 
-      const subtotal = validatedItems.reduce((sum, item) => {
-        const sidesTotal =
-          (item.sides?.reduce((s, side) => s + side.price, 0) ||
-            0) * item.quantity;
-
-        return sum + item.price * item.quantity + sidesTotal;
-      }, 0);
+      for (const item of items) {
+        const productData = await fetchProduct(item.product);
+        const price = productData?.price || item.price; 
+        validatedItems.push({
+          product: item.product,
+          name: item.name,
+          price,
+          image: item.image,
+          quantity: item.quantity,
+        });
+        subtotal += price * item.quantity;
+      }
 
       const total = subtotal + shippingFee;
 
       const order = new Order({
         user: req.userId,
-        restaurant: restaurantId,
+        shop: {
+          _id: shopId,
+          name: items[0].shop.name,
+          logo: items[0].shop.logo,
+        },
+        items: validatedItems,
         address,
         phone,
         paymentMethod,
-        paymentStatus: "pending", 
+        paymentStatus: "pending",
         deliveryType,
         instructions,
         shippingFee,
         subtotal,
         total,
-        items: validatedItems,
         status: "pending",
+        timeline: [{ status: "pending" }],
       });
 
       await order.save({ session });
       createdOrders.push(order);
     }
 
-    // Clear cart after order placed
+    // Clear cart after checkout
     await Cart.deleteOne({ _id: cart._id }).session(session);
 
     await session.commitTransaction();
+    res.status(201).json({ success: true, orders: createdOrders });
 
-    res.status(201).json({
-      success: true,
-      orders: createdOrders,
-    });
   } catch (error) {
     await session.abortTransaction();
-    res.status(500).json({
-      success: false,
-      message: error.message || "Checkout failed",
-    });
+    res.status(500).json({ success: false, message: error.message });
   } finally {
     session.endSession();
   }
 };
 
-
+// ==========================================================
 // GET USER ORDERS
-
+// ==========================================================
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.userId })
       .sort("-createdAt")
-      .populate("restaurant", "name logo address")
-      .populate("items.menu", "name image price")
       .lean();
 
-    res.json({
-      success: true,
-      count: orders.length,
-      orders,
-    });
+    res.json({ success: true, count: orders.length, orders });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-
-// RESTAURANT VIEW ORDERS
-
-export const getRestaurantOrders = async (req, res) => {
+// ==========================================================
+// GET SHOP ORDERS
+// ==========================================================
+export const getShopOrders = async (req, res) => {
   try {
-    const restaurantId = req.restaurantId;
-
-    const orders = await Order.find({ restaurant: restaurantId })
+    const orders = await Order.find({ "shop._id": req.shopId })
       .sort("-createdAt")
-      .populate("user", "name email")
       .lean();
 
-    res.json({
-      success: true,
-      count: orders.length,
-      orders,
-    });
+    res.json({ success: true, count: orders.length, orders });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-
-// UPDATE ORDER STATUS (Restaurant)
-
+// ==========================================================
+// UPDATE ORDER STATUS (SHOP OWNER)
+// ==========================================================
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = [
-      "pending",
-      "confirmed",
-      "processing",
-      "preparing",
-      "handover",
-      "out for delivery",
-      "delivered",
-    ];
-
-    if (!validStatuses.includes(status?.toLowerCase())) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid status" });
-    }
+    const validStatuses = ["pending","accepted","preparing","ready","picked-up","delivered","completed","declined"];
+    if (!validStatuses.includes(status)) return res.status(400).json({ success: false, message: "Invalid status" });
 
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { status },
+      { status, $push: { timeline: { status } } },
       { new: true }
     );
 
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
     res.json({ success: true, order });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
