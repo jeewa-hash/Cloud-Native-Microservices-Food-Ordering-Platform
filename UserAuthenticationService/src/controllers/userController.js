@@ -24,3 +24,25 @@ export const getUserById = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// @desc    Get all shops
+// @route   GET /api/users/shops
+// @access  Public
+export const getShops = async (req, res) => {
+    try {
+        const shops = await User.find({ role: 'shop' }).select('-password');
+
+        const formattedShops = shops.map(shop => ({
+            id: shop._id,
+            username: shop.userName,
+            name: `${shop.firstName} ${shop.lastName}`,
+            email: shop.email,
+            phone: shop.phone
+        }));
+
+        res.status(200).json(formattedShops);
+    } catch (error) {
+        console.error("Get Shops Error:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

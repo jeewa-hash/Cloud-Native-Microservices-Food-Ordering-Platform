@@ -4,7 +4,7 @@ import axios from "axios";
 // @desc    Add new product (With Inter-service communication)
 export const addProduct = async (req, res) => {
   try {
-    const { name, price, description, image, category } = req.body;
+    const { name, price, description, image, category, isAvailable } = req.body;
     const shopId = req.user.id; // JWT Middleware එකෙන් ලැබෙන ID එක
 
     let shopName = "Unknown Shop";
@@ -30,6 +30,7 @@ export const addProduct = async (req, res) => {
       description,
       image,
       category,
+      isAvailable: isAvailable !== undefined ? isAvailable : true,
       shopId,
       shopName, // Auth service එකෙන් ලබාගත් නම
       shopLogo  // Auth service එකෙන් ලබාගත් ලෝගෝව

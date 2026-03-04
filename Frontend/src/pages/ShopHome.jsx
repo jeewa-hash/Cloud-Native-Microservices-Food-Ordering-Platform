@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, PlusCircle, User, LogOut, Menu, X, Store } from 'lucide-react';
+import { Package, PlusCircle, User, LogOut, Menu, X, Store, ClipboardList } from 'lucide-react';
 import AddProduct from '../components/AddProduct';
 import ProductCatalog from '../components/ProductCatalog';
 
@@ -18,6 +18,7 @@ const ShopHome = () => {
     const navItems = [
         { id: 'catalog', label: 'Product Catalog', icon: Package },
         { id: 'add-product', label: 'Add Products', icon: PlusCircle },
+        { id: 'orders', label: 'Orders For Us', icon: ClipboardList },
         { id: 'profile', label: 'Manage Profile', icon: User },
     ];
 
@@ -52,6 +53,13 @@ const ShopHome = () => {
                         <h2 className="text-2xl font-bold mb-6 text-gray-800">Manage Profile</h2>
                         <p className="text-gray-500">Shop details and profile management will go here.</p>
                         {/* Profile form */}
+                    </div>
+                );
+            case 'orders':
+                return (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <h2 className="text-2xl font-bold mb-6 text-gray-800">Orders For Us</h2>
+                        <p className="text-gray-500">Manage incoming orders here.</p>
                     </div>
                 );
             default:

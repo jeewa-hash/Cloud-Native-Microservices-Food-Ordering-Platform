@@ -49,7 +49,7 @@ export const protect = (req, res, next) => {
   }
 };
 
-// 2. Authorization Middleware (මෙය එලෙසම තබන්න)
+// 2. Authorization Middleware 
 export const authorizeShop = (req, res, next) => {
   if (req.user && req.user.role === "shop") {
     next();
