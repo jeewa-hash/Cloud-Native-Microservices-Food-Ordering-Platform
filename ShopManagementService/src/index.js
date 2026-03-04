@@ -10,8 +10,9 @@ import shopRoutes from './routes/shopRoutes.js';
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Increase request body size limits to handle large payloads (e.g., base64 images)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS සැකසුම් (Allowed Origins ලැයිස්තුව ඇතුළත් කර ඇත)
 const allowedOrigins = [
