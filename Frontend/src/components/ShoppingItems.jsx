@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Package, Search, Filter, ShoppingCart, Info, ArrowLeft } from 'lucide-react';
+import CartSidebar from '../OrderManagementServiceFrontend/CartSidebar';
 
 const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
     const [products, setProducts] = useState([]);
@@ -8,10 +9,16 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [cart, setCart] = useState({ items: [] });
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
     useEffect(() => {
         fetchProducts();
     }, [shopId]);
+
+    useEffect(() => {
+        fetchCart();
+    }, []);
 
     const fetchProducts = async () => {
         setIsLoading(true);
@@ -23,52 +30,93 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
             setProducts(response.data);
             setError('');
         } catch (err) {
-            console.error("Error fetching all products:", err);
+            console.error("Error fetching products:", err);
             setError('Failed to load products. Please try again later.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleAddToCart = (product) => {
-        // Placeholder for cart functionality
-        alert(`Added ${product.name} to your cart!`);
+    const fetchCart = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const res = await axios.get('http://localhost:4000/api/cart', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (res.data.success) setCart(res.data.cart);
+        } catch (err) {
+            console.error('Error fetching cart:', err);
+        }
+    };
+
+    const handleAddToCart = async (product) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login to add items to your cart.');
+                return;
+            }
+
+            const response = await axios.post(
+                'http://localhost:4000/api/cart/add',
+                { productId: product._id, quantity: 1 },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (response.data.success) {
+                setCart(response.data.cart);
+                setIsCartOpen(true); // open cart automatically
+            } else {
+                alert('Failed to add item: ' + response.data.message);
+            }
+        } catch (err) {
+            console.error('Add to cart error:', err);
+            alert('Something went wrong while adding to cart.');
+        }
     };
 
     const filteredProducts = products.filter(product => {
-        if (product.isAvailable === false) return false;
-
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        if (!product.isAvailable) return false;
+        const matchesSearch =
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.category.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-
+        const matchesCategory =
+            selectedCategory === 'All' || product.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center p-12 h-64">
-                <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    if (isLoading) return (
+        <div className="flex items-center justify-center p-12 h-64">
+            <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+        </div>
+    );
 
-    if (error) {
-        return (
-            <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center text-center h-64">
-                <p className="font-medium mb-4">{error}</p>
-                <button
-                    onClick={fetchProducts}
-                    className="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-red-700 transition-colors"
-                >
-                    Try Again
-                </button>
-            </div>
-        );
-    }
+    if (error) return (
+        <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center text-center h-64">
+            <p className="font-medium mb-4">{error}</p>
+            <button
+                onClick={fetchProducts}
+                className="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-red-700 transition-colors"
+            >
+                Try Again
+            </button>
+        </div>
+    );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* Cart Sidebar */}
+            <CartSidebar
+                cart={cart}
+                setCart={setCart}
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
+
+            {/* Back Button */}
             {shopId && onBack && (
                 <button
                     onClick={onBack}
@@ -86,47 +134,60 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
                         {shopId ? `${shopName} Products` : 'Shopping Items'}
                     </h2>
                     <p className="text-gray-500 mt-1">
-                        {shopId ? 'Browse the menu for this specific shop.' : 'Discover delicious meals from your favorite restaurants.'}
+                        {shopId
+                            ? 'Browse the menu for this specific shop.'
+                            : 'Discover products from your favorite stores.'}
                     </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
-                    {/* Category Filter */}
-                    <div className="relative w-full sm:w-48">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Filter className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all shadow-sm appearance-none cursor-pointer text-gray-700 font-medium"
-                        >
-                            <option value="All">All Categories</option>
-                            <option value="Food">Food</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Grocery">Grocery</option>
-                            <option value="Other">Other</option>
-                        </select>
+                <div className="flex items-center gap-4">
+                    {/* Cart Badge */}
+                    <div className="relative cursor-pointer" onClick={() => setIsCartOpen(true)}>
+                        <ShoppingCart className="w-6 h-6 text-black" />
+                        {cart.items.length > 0 && (
+                            <span className="absolute -top-2 -right-2 text-xs font-bold bg-orange-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                                {cart.items.length}
+                            </span>
+                        )}
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="relative w-full sm:w-72">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                    {/* Category & Search */}
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
+                        <div className="relative w-full sm:w-48">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Filter className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="w-full pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all shadow-sm appearance-none cursor-pointer text-gray-700 font-medium"
+                            >
+                                <option value="All">All Categories</option>
+                                <option value="Food">Food</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Grocery">Grocery</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search Products..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all shadow-sm font-medium text-gray-700"
-                        />
+
+                        <div className="relative w-full sm:w-72">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search Products..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all shadow-sm font-medium text-gray-700"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* List View */}
+            {/* Product List */}
             {filteredProducts.length === 0 ? (
                 <div className="bg-white p-12 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm h-64">
                     <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
@@ -135,15 +196,17 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No items found</h3>
                     <p className="text-gray-500 max-w-sm">
                         {searchTerm || selectedCategory !== 'All'
-                            ? "We couldn't find any meals matching your search criteria. Try a different query."
-                            : "There are currently no items available to shop."}
+                            ? "We couldn't find any products matching your search criteria."
+                            : "There are currently no items available."}
                     </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredProducts.map((product) => (
-                        <div key={product._id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 group flex flex-col">
-                            {/* Image Container */}
+                        <div
+                            key={product._id}
+                            className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 group flex flex-col"
+                        >
                             <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
                                 {product.image ? (
                                     <img
@@ -156,7 +219,6 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
                                         <Package className="w-12 h-12 opacity-20" />
                                     </div>
                                 )}
-
                                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5">
                                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                     {product.category}

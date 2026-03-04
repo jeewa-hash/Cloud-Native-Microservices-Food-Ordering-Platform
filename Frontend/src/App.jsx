@@ -7,6 +7,9 @@ import ShopHome from './pages/ShopHome';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
+import CheckoutPage from './OrderManagementServiceFrontend/CheckoutPage';
+import OrderHistoryPage from "./OrderManagementServiceFrontend/OrderHistoryPage"; 
+
 import './App.css';
 
 function App() {
@@ -23,6 +26,9 @@ function App() {
         {/* Protected Routes (Accessible only if logged in and role matches) */}
         <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
           <Route path="/customer-home" element={<CustomerHome />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-history" element={<OrderHistoryPage />} /> {/* Alternative route */}
+
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['shop']} />}>

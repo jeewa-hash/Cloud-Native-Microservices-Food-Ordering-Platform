@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, User, LogOut, Menu, X, Store } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, User, LogOut, Menu, X, Store,Clock } from 'lucide-react';
 import ShoppingItems from '../components/ShoppingItems';
 import ShopList from '../components/ShopList';
 
@@ -20,6 +20,7 @@ const CustomerHome = () => {
         { id: 'shops', label: 'Shopes', icon: Store },
         { id: 'cart', label: 'My Cart', icon: ShoppingCart },
         { id: 'profile', label: 'Manage Profile', icon: User },
+        { id: 'orders', label: 'Track Orders', icon: Clock },
     ];
 
     const renderContent = () => {
@@ -53,9 +54,13 @@ const CustomerHome = () => {
                         {/* Profile component will go here */}
                     </div>
                 );
-            default:
-                return null;
-        }
+             case 'orders':
+            // Navigate to Order History page
+            navigate('/order-history');
+            return null;
+        default:
+            return null;
+    }
     };
 
     return (
