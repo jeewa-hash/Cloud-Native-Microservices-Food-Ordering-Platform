@@ -2,14 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import mongoose from 'mongoose';
+import orderRoutes from "./routes/orderRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 
 
 const app = express();
-
-
-
-
-
 
 
 app.use(express.json());
@@ -32,8 +29,8 @@ app.use(
 
 
 
-
-
+app.use("/api/order", orderRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.get('/', (req, res) => {
   res.send('order management backend is WORKING');
