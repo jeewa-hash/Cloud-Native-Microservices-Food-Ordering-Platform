@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 
 // Routes ආනයනය කිරීම (Importing Routes)
 import productRoutes from './routes/productRoutes.js';
+import shopRoutes from './routes/shopRoutes.js';
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use(
 // --- API Routes ---
 // Shop Management සඳහා වන ප්‍රධාන Route එක
 app.use('/api/products', productRoutes);
+app.use('/api/shops', shopRoutes);
 
 // Base Route
 app.get('/', (req, res) => {

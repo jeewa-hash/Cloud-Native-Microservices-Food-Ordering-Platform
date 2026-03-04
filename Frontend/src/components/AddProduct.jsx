@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Package, DollarSign, Image as ImageIcon, Tag, AlignLeft, Upload, X, CheckCircle } from 'lucide-react';
+import { Package, DollarSign, Image as ImageIcon, Tag, AlignLeft, Upload, X, CheckCircle, ToggleLeft } from 'lucide-react';
 
 const AddProduct = ({ onProductAdded, initialData = null }) => {
     const isEditMode = !!initialData;
@@ -10,7 +10,8 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
         price: '',
         category: '',
         description: '',
-        image: ''
+        image: '',
+        isAvailable: true
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +26,8 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
                 price: initialData.price || '',
                 category: initialData.category || '',
                 description: initialData.description || '',
-                image: initialData.image || ''
+                image: initialData.image || '',
+                isAvailable: initialData.isAvailable !== false
             });
             if (initialData.image) {
                 setImagePreview(initialData.image);
@@ -36,7 +38,8 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
                 price: '',
                 category: '',
                 description: '',
-                image: ''
+                image: '',
+                isAvailable: true
             });
             setImagePreview(null);
         }
@@ -46,7 +49,7 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'isAvailable' ? value === 'true' : value
         }));
     };
 
@@ -98,15 +101,17 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
 
         try {
             const token = localStorage.getItem('token');
+            const payload = { ...formData };
+
             let response;
             if (isEditMode) {
-                response = await axios.put(`http://localhost:4040/api/products/${initialData._id}`, formData, {
+                response = await axios.put(`http://localhost:4040/api/products/${initialData._id}`, payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
             } else {
-                response = await axios.post('http://localhost:4040/api/products', formData, {
+                response = await axios.post('http://localhost:4040/api/products', payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -120,7 +125,8 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
                         price: '',
                         category: '',
                         description: '',
-                        image: ''
+                        image: '',
+                        isAvailable: true
                     });
                     setImagePreview(null);
                 }
@@ -221,6 +227,24 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
                                     <option value="Clothing">Clothing</option>
                                     <option value="Grocery">Grocery</option>
                                     <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            {/* Availability */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <ToggleLeft className="w-4 h-4 text-orange-600" />
+                                    Availability
+                                </label>
+                                <select
+                                    name="isAvailable"
+                                    value={formData.isAvailable.toString()}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="true">Available</option>
+                                    <option value="false">Not Available</option>
                                 </select>
                             </div>
                         </div>

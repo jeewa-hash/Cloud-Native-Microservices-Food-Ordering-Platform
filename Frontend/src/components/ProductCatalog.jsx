@@ -163,7 +163,7 @@ const ProductCatalog = ({ onAddProduct, onEditProduct }) => {
                                     <img
                                         src={product.image}
                                         alt={product.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        className={`w-full h-full object-cover transition-transform duration-500 ${!product.isAvailable ? 'grayscale-[0.5] opacity-80' : 'group-hover:scale-105'}`}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -171,9 +171,16 @@ const ProductCatalog = ({ onAddProduct, onEditProduct }) => {
                                     </div>
                                 )}
 
-                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm">
+                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5">
+                                    <span className={`w-2 h-2 rounded-full ${product.isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                     {product.category}
                                 </div>
+
+                                {!product.isAvailable && (
+                                    <div className="absolute top-3 left-3 bg-red-100/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-red-600 shadow-sm border border-red-200">
+                                        Not Available
+                                    </div>
+                                )}
                             </div>
 
                             <div className="p-5 flex-1 flex flex-col">
