@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Store,
   Info,
+  Search,
 } from "lucide-react";
 
 const ShopOrders = () => {
@@ -23,6 +24,9 @@ const ShopOrders = () => {
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchOrders = async () => {
     try {
@@ -158,11 +162,83 @@ const ShopOrders = () => {
     );
   }
 
+  const filteredOrders = orders.filter((order) => {
+    let matchesSearch = true;
+    if (searchQuery.trim() !== "") {
+      matchesSearch = order._id.toLowerCase().includes(searchQuery.toLowerCase().trim());
+    }
+
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const orderDate = new Date(order.createdAt);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (orderDate < start) matchesDate = false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (orderDate > end) matchesDate = false;
+      }
+    }
+
+    return matchesSearch && matchesDate;
+  });
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Orders For You</h2>
         <p className="text-gray-500 mt-1">View and manage incoming orders.</p>
+      </div>
+
+      {/* ── Filters ── */}
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full lg:w-1/2">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="text-gray-400 w-5 h-5" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by Order ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-gray-50 hover:bg-white focus:bg-white transition-colors"
+          />
+        </div>
+
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
+          <div className="flex flex-col flex-1 sm:flex-none">
+            <label className="text-xs text-gray-500 font-medium mb-1">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm text-gray-700 w-full"
+            />
+          </div>
+          <span className="text-gray-400 mt-5 hidden sm:block">-</span>
+          <div className="flex flex-col flex-1 sm:flex-none">
+            <label className="text-xs text-gray-500 font-medium mb-1">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm text-gray-700 w-full"
+            />
+          </div>
+          {(startDate || endDate || searchQuery) && (
+            <div className="flex flex-col justify-end mt-5 sm:mt-0 ml-auto sm:ml-2">
+              <button
+                onClick={() => { setStartDate(""); setEndDate(""); setSearchQuery(""); }}
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium px-2 py-2"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {orders.length === 0 ? (
@@ -173,9 +249,17 @@ const ShopOrders = () => {
           <h3 className="text-xl font-bold text-gray-900 mb-2">No orders yet</h3>
           <p className="text-gray-500 max-w-sm">You haven't received any orders from customers yet.</p>
         </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="bg-white p-12 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <Search className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No matching orders found</h3>
+          <p className="text-gray-500 max-w-sm">Try adjusting your filters or search query.</p>
+        </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => {
+          {filteredOrders.map((order) => {
             const statusInfo = getStatusInfo(order.status);
             const isExpanded = expandedOrder === order._id;
 
@@ -376,17 +460,17 @@ const ShopOrders = () => {
                               <div key={step.status} className="flex items-start gap-4 relative">
                                 <div
                                   className={`w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 flex-shrink-0 transition-all ${stepState === "completed"
-                                      ? "border-green-500 bg-green-500 text-white"
-                                      : stepState === "current"
-                                        ? "border-orange-500 bg-white text-orange-500 shadow-md shadow-orange-100"
-                                        : "border-gray-200 bg-white text-gray-300"
+                                    ? "border-green-500 bg-green-500 text-white"
+                                    : stepState === "current"
+                                      ? "border-orange-500 bg-white text-orange-500 shadow-md shadow-orange-100"
+                                      : "border-gray-200 bg-white text-gray-300"
                                     }`}
                                 >
                                   <Icon className="w-5 h-5" />
                                 </div>
                                 <div className="pt-1.5">
                                   <p className={`text-sm font-semibold ${stepState === "completed" ? "text-green-700" :
-                                      stepState === "current" ? "text-orange-600" : "text-gray-400"
+                                    stepState === "current" ? "text-orange-600" : "text-gray-400"
                                     }`}>
                                     {step.label}
                                   </p>
