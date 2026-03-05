@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "restaurant_management_service",
   "version": "1.0.0",
   "main": "src/index.js",
