@@ -15,6 +15,7 @@ const TimelineSchema = new mongoose.Schema({
 
 const OrderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  userName: { type: String }, // cached copy of customer name for shop views
   shop: {
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     name: String,
