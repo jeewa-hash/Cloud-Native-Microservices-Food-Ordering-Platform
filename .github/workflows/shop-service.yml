@@ -7,43 +7,44 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-push:
+  security-scan:
     runs-on: ubuntu-latest
     steps:
-      # 1. GitHub Repository එකෙන් Code එක ලබා ගැනීම
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. Node.js පරිසරය සකස් කිරීම
+      - uses: actions/checkout@v4
+      
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      # 3. Dependencies Install කිරීම (මෙය අත්‍යවශ්‍යයි Snyk සඳහා)
+          
       - name: Install Dependencies
-        run: npm install
+        run: npm ci  # 'npm install' වෙනුවට 'npm ci' හොඳයි
         working-directory: ./ShopManagementService
 
-      # 4. Snyk Security Scan (SAST Integration) - ලකුණු 20% සඳහා 
+      # Snyk Scan - හරි ක්‍රමය
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
-        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
         with:
-          args: --severity-threshold=high --pkg-manager=npm --file=ShopManagementService/package.json
+          args: --severity-threshold=high
+        continue-on-error: true  # Build එක fail නොකර scan කරන්න
 
-      # 5. Docker Hub වෙත ලොග් වීම
+  build-and-push:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}
           password: ${{ secrets.DOCKER_PASSWORD_SHOP_MANAGEMENT }}
-
-      # 6. Docker Image එක build කරලා Push කිරීම [cite: 24, 27]
+          
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./ShopManagementService
           push: true
