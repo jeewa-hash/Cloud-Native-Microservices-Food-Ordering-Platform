@@ -9,6 +9,9 @@ on:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ShopManagementService  # All run commands සඳහා working directory set කරන්න
     steps:
       - uses: actions/checkout@v4
       
@@ -18,17 +21,15 @@ jobs:
           node-version: '20'
           
       - name: Install Dependencies
-        run: npm ci
-        working-directory: ./ShopManagementService
+        run: npm ci  # defaults.run.working-directory එක apply වෙයි
 
-      # Snyk Scan - Working Directory එක Set කරලා
+      # Snyk Scan - ක්‍රමය 1: --file flag එක use කරලා
       - name: Run Snyk
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
         with:
-          args: --severity-threshold=high
-        working-directory: ./ShopManagementService  # **මෙය වැදගත්**
+          args: --severity-threshold=high --file=ShopManagementService/package.json
         continue-on-error: true
 
   build-and-push:
