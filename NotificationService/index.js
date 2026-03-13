@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
   res.send('order management backend is WORKING');
 });
 
-const port = process.env.PORT || 4040;
+const port = process.env.PORT || 5050;
 const mongoURI = process.env.MONGO_URI;
 
 if (!mongoURI) {
