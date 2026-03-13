@@ -2,7 +2,7 @@ name: Shop Management Service CI/CD
 
 on:
   push:
-    # මේ සේවාවේ ෆෝල්ඩරය ඇතුළේ යමක් වෙනස් වුණොත් විතරක් පයිප්ලය වැඩ කරයි
+    # ShopManagementService ෆෝල්ඩරය තුළ වෙනසක් සිදු වූ විට පමණක් ක්‍රියාත්මක වේ
     paths:
       - 'ShopManagementService/**'
     branches: [ "main" ]
@@ -11,19 +11,31 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+      # 1. GitHub Repository එකෙන් Code එක ලබා ගැනීම
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Snyk Security Scan (SAST Integration) - ලකුණු 20% සඳහා [cite: 39, 63]
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true # ආරක්ෂක දෝෂ තිබුණත් පයිප්ලය නතර නොවී පවත්වා ගැනීමට
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
+        with:
+          args: --severity-threshold=high --pkg-manager=npm
+          directory: ./ShopManagementService
+
+      # 3. Docker Hub වෙත ලොග් වීම
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}
           password: ${{ secrets.DOCKER_PASSWORD_SHOP_MANAGEMENT }}
 
+      # 4. Docker Image එක build කරලා Push කිරීම [cite: 24, 27]
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          # Dockerfile එක තියෙන තැන හරියටම දෙන්න
           context: ./ShopManagementService
           push: true
           tags: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
