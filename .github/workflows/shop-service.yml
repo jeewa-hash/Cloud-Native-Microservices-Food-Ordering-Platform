@@ -1,0 +1,29 @@
+name: Shop Management Service CI/CD
+
+on:
+  push:
+    # මේ සේවාවේ ෆෝල්ඩරය ඇතුළේ යමක් වෙනස් වුණොත් විතරක් පයිප්ලය වැඩ කරයි
+    paths:
+      - 'ShopManagementService/**'
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          # Dockerfile එක තියෙන තැන හරියටම දෙන්න
+          context: ./ShopManagementService
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/shop-management-service:latest
