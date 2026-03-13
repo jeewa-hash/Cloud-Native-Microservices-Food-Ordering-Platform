@@ -22,8 +22,8 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
         with:
-          args: --severity-threshold=high --pkg-manager=npm
-          directory: ./ShopManagementService
+          # directory වෙනුවට args හරහා package.json ඇති තැන පෙන්වීමෙන් දෝෂය විසඳේ
+          args: --severity-threshold=high --pkg-manager=npm --file=ShopManagementService/package.json
 
       # 3. Docker Hub වෙත ලොග් වීම
       - name: Login to Docker Hub
@@ -36,6 +36,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
+          # Dockerfile එක ඇති තැන නිවැරදිව ලබා දී ඇත
           context: ./ShopManagementService
           push: true
           tags: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
