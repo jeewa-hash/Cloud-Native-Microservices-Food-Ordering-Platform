@@ -18,17 +18,18 @@ jobs:
           node-version: '20'
           
       - name: Install Dependencies
-        run: npm ci  # 'npm install' වෙනුවට 'npm ci' හොඳයි
+        run: npm ci
         working-directory: ./ShopManagementService
 
-      # Snyk Scan - හරි ක්‍රමය
-      - name: Run Snyk to check for vulnerabilities
+      # Snyk Scan - Working Directory එක Set කරලා
+      - name: Run Snyk
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
         with:
           args: --severity-threshold=high
-        continue-on-error: true  # Build එක fail නොකර scan කරන්න
+        working-directory: ./ShopManagementService  # **මෙය වැදගත්**
+        continue-on-error: true
 
   build-and-push:
     needs: security-scan
