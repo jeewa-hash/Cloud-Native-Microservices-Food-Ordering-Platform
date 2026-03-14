@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Package, DollarSign, Image as ImageIcon, Tag, AlignLeft, Upload, X, CheckCircle, ToggleLeft } from 'lucide-react';
+import { PRODUCTS_API } from '../apiConfig';
 
 const AddProduct = ({ onProductAdded, initialData = null }) => {
     const isEditMode = !!initialData;
@@ -105,13 +106,13 @@ const AddProduct = ({ onProductAdded, initialData = null }) => {
 
             let response;
             if (isEditMode) {
-                response = await axios.put(`http://localhost:4040/api/products/${initialData._id}`, payload, {
+                response = await axios.put(`${PRODUCTS_API}/${initialData._id}`, payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
             } else {
-                response = await axios.post('http://localhost:4040/api/products', payload, {
+                response = await axios.post(PRODUCTS_API, payload, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

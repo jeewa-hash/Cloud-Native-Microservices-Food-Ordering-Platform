@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { 
-  MapPin, 
-  Phone, 
-  Truck, 
-  Zap, 
-  ShoppingBag, 
+import { ORDER_API } from "../apiConfig";
+import {
+  MapPin,
+  Phone,
+  Truck,
+  Zap,
+  ShoppingBag,
   CreditCard,
   Clock,
   Package,
@@ -33,16 +34,16 @@ const CheckoutPage = () => {
     try {
       setFetchLoading(true);
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         navigate("/login");
         return;
       }
 
-      const res = await axios.get("http://localhost:4000/api/cart", {
+      const res = await axios.get(`${ORDER_API}/cart`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (res.data.success) {
         setCart(res.data.cart);
       }
@@ -64,7 +65,7 @@ const CheckoutPage = () => {
     const shopId = item.shop?._id || 'unknown';
     const shopName = item.shop?.name || 'Unknown Shop';
     const shopLogo = item.shop?.logo;
-    
+
     if (!itemsByShop[shopId]) {
       itemsByShop[shopId] = {
         shopId,
@@ -118,16 +119,16 @@ const CheckoutPage = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         navigate("/login");
         return;
       }
 
       const response = await axios.post(
-        "http://localhost:4000/api/order/checkout",
+        `${ORDER_API}/checkout`,
         {
           address: address.trim(),
           phone: phone.trim(),
@@ -135,11 +136,11 @@ const CheckoutPage = () => {
           instructions: instructions.trim() || "",
           shippingFee: deliveryFee
         },
-        { 
-          headers: { 
+        {
+          headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
-          } 
+          }
         }
       );
 
@@ -149,7 +150,7 @@ const CheckoutPage = () => {
       }
     } catch (err) {
       console.error("Checkout error:", err);
-      
+
       if (err.response?.status === 401) {
         setError("Your session has expired. Please login again.");
         localStorage.removeItem("token");
@@ -171,7 +172,7 @@ const CheckoutPage = () => {
     return `LKR ${price?.toLocaleString() || 0}`;
   };
 
-  
+
   // Loading state
   if (fetchLoading) {
     return (
@@ -231,9 +232,9 @@ const CheckoutPage = () => {
               <FileText className="text-orange-600 mr-2" size={24} />
               <h2 className="text-xl font-bold text-orange-800">Invoice Preview</h2>
             </div>
-           
+
           </div>
-          
+
           <div className="bg-white rounded-xl p-4">
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
               <div>
@@ -253,7 +254,7 @@ const CheckoutPage = () => {
                     <Store className="text-orange-600 mr-2" size={16} />
                     <h3 className="font-semibold text-gray-800">{shopData.shopName}</h3>
                   </div>
-                  
+
                   {/* Shop Items Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -271,8 +272,8 @@ const CheckoutPage = () => {
                             <td className="px-2 py-2">
                               <div className="flex items-center">
                                 {item.image ? (
-                                  <img 
-                                    src={item.image} 
+                                  <img
+                                    src={item.image}
                                     alt={item.name}
                                     className="w-8 h-8 object-cover rounded mr-2"
                                   />
@@ -290,7 +291,7 @@ const CheckoutPage = () => {
                       </tbody>
                     </table>
                   </div>
-                  
+
                   {/* Shop Subtotal */}
                   <div className="flex justify-end mt-2">
                     <span className="text-sm text-gray-600 mr-4">Shop Subtotal:</span>
@@ -328,7 +329,7 @@ const CheckoutPage = () => {
             <MapPin className="text-orange-600 mr-2" size={24} />
             Delivery Details
           </h2>
-          
+
           <div className="space-y-4">
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -372,10 +373,10 @@ const CheckoutPage = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label 
+            <label
               className={`relative border-2 rounded-xl p-4 cursor-pointer transition-all
-                ${deliveryType === 'standard' 
-                  ? 'border-orange-500 bg-orange-50' 
+                ${deliveryType === 'standard'
+                  ? 'border-orange-500 bg-orange-50'
                   : 'border-gray-200 hover:border-orange-300'}`}
             >
               <input
@@ -403,10 +404,10 @@ const CheckoutPage = () => {
               )}
             </label>
 
-            <label 
+            <label
               className={`relative border-2 rounded-xl p-4 cursor-pointer transition-all
-                ${deliveryType === 'express' 
-                  ? 'border-orange-500 bg-orange-50' 
+                ${deliveryType === 'express'
+                  ? 'border-orange-500 bg-orange-50'
                   : 'border-gray-200 hover:border-orange-300'}`}
             >
               <input
@@ -469,7 +470,7 @@ const CheckoutPage = () => {
           )}
         </button>
 
-       
+
 
         {/* Security Note */}
         <p className="text-xs text-center text-gray-400 mt-4">

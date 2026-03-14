@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User as UserIcon, Phone, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
+import { AUTH_API } from '../apiConfig';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const Register = () => {
         setIsLoading(true);
         try {
             const { confirmPassword, ...payload } = formData;
-            const response = await axios.post('http://localhost:5002/api/auth/register', payload);
+            const response = await axios.post(`${AUTH_API}/register`, payload);
 
             if (response.status === 201) {
                 // Pass a success message to the login page

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { 
-  ShoppingBag, 
-  X, 
-  Trash2, 
-  Plus, 
+import { ORDER_API } from "../apiConfig";
+import {
+  ShoppingBag,
+  X,
+  Trash2,
+  Plus,
   Minus,
   ArrowRight,
   ShoppingCart,
@@ -32,7 +33,7 @@ const CartSidebar = ({ cart, setCart, isOpen, onClose }) => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        "http://localhost:4000/api/cart/update",
+        `${ORDER_API}/cart/update`,
         { productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -46,7 +47,7 @@ const CartSidebar = ({ cart, setCart, isOpen, onClose }) => {
   const removeFromCart = async (productId) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.delete("http://localhost:4000/api/cart/remove", {
+      const res = await axios.delete(`${ORDER_API}/cart/remove`, {
         data: { productId },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -79,17 +80,15 @@ const CartSidebar = ({ cart, setCart, isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
-          isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-[500px] bg-gradient-to-b from-gray-50 to-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-[500px] bg-gradient-to-b from-gray-50 to-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="bg-white px-8 py-6 border-b border-gray-100 sticky top-0">

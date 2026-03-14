@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Package, Search, Filter, ShoppingCart, Info, ArrowLeft } from 'lucide-react';
 import CartSidebar from '../OrderManagementServiceFrontend/CartSidebar';
+import { PRODUCTS_API, ORDER_API } from '../apiConfig';
 
 const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
     const [products, setProducts] = useState([]);
@@ -24,8 +25,8 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
         setIsLoading(true);
         try {
             const url = shopId
-                ? `http://localhost:4040/api/products/shops/${shopId}`
-                : 'http://localhost:4040/api/products';
+                ? `${PRODUCTS_API}/shops/${shopId}`
+                : PRODUCTS_API;
             const response = await axios.get(url);
             setProducts(response.data);
             setError('');
@@ -42,7 +43,7 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            const res = await axios.get('http://localhost:4000/api/cart', {
+            const res = await axios.get(`${ORDER_API}/cart`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -61,7 +62,7 @@ const ShoppingItems = ({ shopId = null, shopName = null, onBack = null }) => {
             }
 
             const response = await axios.post(
-                'http://localhost:4000/api/cart/add',
+                `${ORDER_API}/cart/add`,
                 { productId: product._id, quantity: 1 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

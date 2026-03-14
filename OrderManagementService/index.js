@@ -11,10 +11,10 @@ const app = express();
 // CORS configuration
 // ----------------------
 const allowedOrigins = [
-  'http://localhost:3000', // frontend URL
+  'http://localhost:3000', 
   'http://127.0.0.1:3000', 
-  'http://localhost:5173',// another dev URL
-  // add other allowed origins here
+  'http://localhost:5173',
+  process.env.FRONTEND_URL  // <--- මේ පේළිය අලුතින් එකතු කරන්න
 ];
 
 app.use(

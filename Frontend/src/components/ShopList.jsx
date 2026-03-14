@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Store, Search, MapPin, ChevronRight, Phone, Mail } from 'lucide-react';
+import { SHOP_API } from '../apiConfig';
 
 const ShopList = ({ onShopSelect }) => {
     const [shops, setShops] = useState([]);
@@ -15,7 +16,7 @@ const ShopList = ({ onShopSelect }) => {
     const fetchShops = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:4040/api/shops');
+            const response = await axios.get(SHOP_API);
             setShops(response.data);
             setError('');
         } catch (err) {

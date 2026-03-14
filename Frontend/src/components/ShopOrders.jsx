@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { SHOP_API, AUTH_API, BASE_URL } from "../apiConfig";
 import {
   Clock,
   CheckCircle,
@@ -33,13 +34,13 @@ const ShopOrders = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await axios.get("http://localhost:4040/api/shops/orders", {
+      const res = await axios.get(`${SHOP_API}/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {
         let loaded = res.data.orders || [];
         // if any order doesn't have a userName but has a user id string, try fetching from auth service
-        const authUrl = "http://localhost:5002"; // make sure this matches .env for auth service
+        const authUrl = BASE_URL; // Gateway base URL for auth service
         const toEnrich = loaded.filter(o => !o.userName && o.user && typeof o.user === "string");
         if (toEnrich.length > 0) {
           await Promise.all(
@@ -133,7 +134,7 @@ const ShopOrders = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
-        `http://localhost:4040/api/shops/orders/${orderId}/status`,
+        `${SHOP_API}/orders/${orderId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

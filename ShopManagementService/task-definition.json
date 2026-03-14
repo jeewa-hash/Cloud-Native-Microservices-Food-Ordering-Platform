@@ -1,0 +1,106 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:386403274306:task-definition/ShopTask:2",
+    "containerDefinitions": [
+        {
+            "name": "shop-container",
+            "image": "nethmiumaya56/shop-management-service",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "shop-container-4040-tcp",
+                    "containerPort": 4040,
+                    "hostPort": 4040,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "AUTH_SERVICE_URL",
+                    "value": "http://auth-alb-1706945340.eu-north-1.elb.amazonaws.com"
+                },
+                {
+                    "name": "ORDER_SERVICE_URL",
+                    "value": "http://order-alb-1411336470.eu-north-1.elb.amazonaws.com"
+                },
+                {
+                    "name": "PORT",
+                    "value": "4040"
+                },
+                {
+                    "name": "JWT_SECRET",
+                    "value": "super_secret_jwt_key_here"
+                },
+                {
+                    "name": "FRONTEND_URL",
+                    "value": "http://frontend-nethmi.s3-website.eu-north-1.amazonaws.com"
+                },
+                {
+                    "name": "MONGO_URI",
+                    "value": "mongodb+srv://jkumarasekara:d57GMhwHZliDJStN@cluster0.meezaxf.mongodb.net/shopdb?retryWrites=true&w=majority"
+                }
+            ],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/ShopTask",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "eu-north-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "ShopTask",
+    "executionRoleArn": "arn:aws:iam::386403274306:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 2,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "registeredAt": "2026-03-14T03:56:41.771Z",
+    "registeredBy": "arn:aws:iam::386403274306:root",
+    "enableFaultInjection": false,
+    "tags": []
+}

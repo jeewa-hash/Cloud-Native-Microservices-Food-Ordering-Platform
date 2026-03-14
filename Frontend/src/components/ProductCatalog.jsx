@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Package, Edit2, Trash2, Search, ArrowRight, Filter, AlertTriangle } from 'lucide-react';
+import { PRODUCTS_API } from '../apiConfig';
 
 const ProductCatalog = ({ onAddProduct, onEditProduct }) => {
     const [products, setProducts] = useState([]);
@@ -31,7 +32,7 @@ const ProductCatalog = ({ onAddProduct, onEditProduct }) => {
 
             if (!shopId) throw new Error("Could not derive Shop ID from token");
 
-            const response = await axios.get(`http://localhost:4040/api/products/shops/${shopId}`);
+            const response = await axios.get(`${PRODUCTS_API}/shops/${shopId}`);
             setProducts(response.data);
         } catch (err) {
             console.error("Error fetching products:", err);
@@ -51,7 +52,7 @@ const ProductCatalog = ({ onAddProduct, onEditProduct }) => {
         setIsDeleting(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:4040/api/products/${productToDelete._id}`, {
+            await axios.delete(`${PRODUCTS_API}/${productToDelete._id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
