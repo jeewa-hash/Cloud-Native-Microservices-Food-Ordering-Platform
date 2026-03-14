@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:386403274306:task-definition/ShopTask:2",
+    "family": "ShopTask",
     "containerDefinitions": [
         {
             "name": "shop-container",
@@ -41,10 +41,6 @@
                     "value": "mongodb+srv://jkumarasekara:d57GMhwHZliDJStN@cluster0.meezaxf.mongodb.net/shopdb?retryWrites=true&w=majority"
                 }
             ],
-            "environmentFiles": [],
-            "mountPoints": [],
-            "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -52,44 +48,12 @@
                     "awslogs-create-group": "true",
                     "awslogs-region": "eu-north-1",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
-            },
-            "systemControls": []
+                }
+            }
         }
     ],
-    "family": "ShopTask",
     "executionRoleArn": "arn:aws:iam::386403274306:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 2,
-    "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "ecs.capability.task-eni"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
-        }
-    ],
-    "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
-    ],
     "requiresCompatibilities": [
         "FARGATE"
     ],
@@ -98,9 +62,5 @@
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
-    },
-    "registeredAt": "2026-03-14T03:56:41.771Z",
-    "registeredBy": "arn:aws:iam::386403274306:root",
-    "enableFaultInjection": false,
-    "tags": []
+    }
 }
