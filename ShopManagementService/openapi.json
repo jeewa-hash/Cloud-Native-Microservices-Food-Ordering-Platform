@@ -1,0 +1,567 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Shop Management Microservice API",
+        "description": "API Specification for the Shop Management Microservice. Covers Shop and Product operations.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://gateway-alb-943122502.eu-north-1.elb.amazonaws.com/api",
+            "description": "API Gateway Base URL"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "paths": {
+        "/shops": {
+            "get": {
+                "summary": "Get all shops",
+                "description": "Retrieves a list of all shops from the User Authentication Service.",
+                "tags": [
+                    "Shops"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of all shops.",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "_id": "60d0fe4f5311236168a109ca",
+                                        "username": "super_shop",
+                                        "name": "Super Shop",
+                                        "logo": "https://example.com/logo.png"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Failed to fetch shops"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shops/orders": {
+            "get": {
+                "summary": "Get shop orders",
+                "description": "Retrieves orders belonging to the authenticated shop via proxy to Order Management Service.",
+                "tags": [
+                    "Shops"
+                ],
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of shop orders.",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "_id": "60d0fe4f5311236168a110ab",
+                                        "customerName": "John Doe",
+                                        "totalAmount": 1500,
+                                        "status": "pending"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized. Missing or invalid token."
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Failed to fetch shop orders"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shops/orders/{orderId}/status": {
+            "patch": {
+                "summary": "Update order status",
+                "description": "Updates the status of an order. Accessible only to the shop owner.",
+                "tags": [
+                    "Shops"
+                ],
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "orderId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The ID of the order to update"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "example": "shipped"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order status updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "_id": "60d0fe4f5311236168a110ab",
+                                    "status": "shipped"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request. Invalid data."
+                    },
+                    "401": {
+                        "description": "Unauthorized. Missing or invalid token."
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Failed to update order status"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products": {
+            "post": {
+                "summary": "Add a new product",
+                "description": "Creates a new product associated with the authenticated shop.",
+                "tags": [
+                    "Products"
+                ],
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Wireless Mouse"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 1500
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "High precision wireless mouse"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "example": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "Electronics"
+                                    },
+                                    "isAvailable": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "category"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Product created successfully.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "_id": "64a0f8b13d2a1b00159cd11a",
+                                    "name": "Wireless Mouse",
+                                    "price": 1500,
+                                    "description": "High precision wireless mouse",
+                                    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...",
+                                    "category": "Electronics",
+                                    "isAvailable": true,
+                                    "shopId": "60d0fe4f5311236168a109ca",
+                                    "shopName": "Super Shop",
+                                    "shopLogo": "https://example.com/logo.png"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request. Missing required data."
+                    },
+                    "401": {
+                        "description": "Unauthorized. Missing or invalid token."
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error processing the product creation"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get all products",
+                "description": "Retrieves a list of all available products.",
+                "tags": [
+                    "Products"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of products.",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "_id": "64a0f8b13d2a1b00159cd11a",
+                                        "name": "Wireless Mouse",
+                                        "price": 1500,
+                                        "description": "High precision wireless mouse",
+                                        "category": "Electronics",
+                                        "isAvailable": true,
+                                        "shopId": "60d0fe4f5311236168a109ca"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}": {
+            "get": {
+                "summary": "Get product by ID",
+                "description": "Retrieves details of a specific product by its ID.",
+                "tags": [
+                    "Products"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The Product ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of the product.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "_id": "64a0f8b13d2a1b00159cd11a",
+                                    "name": "Wireless Mouse",
+                                    "price": 1500,
+                                    "category": "Electronics",
+                                    "isAvailable": true,
+                                    "shopId": "60d0fe4f5311236168a109ca"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Product not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update product",
+                "description": "Updates an existing product. Only the shop owner can update it.",
+                "tags": [
+                    "Products"
+                ],
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The Product ID"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Wireless Mouse (Updated)"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 1600
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "A highly precise and ergonomic wireless mouse."
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "Electronics"
+                                    },
+                                    "isAvailable": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "_id": "64a0f8b13d2a1b00159cd11a",
+                                    "name": "Wireless Mouse (Updated)",
+                                    "price": 1600,
+                                    "description": "A highly precise and ergonomic wireless mouse.",
+                                    "category": "Electronics",
+                                    "isAvailable": true,
+                                    "shopId": "60d0fe4f5311236168a109ca"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request. Invalid data format."
+                    },
+                    "401": {
+                        "description": "Unauthorized. Missing or invalid token."
+                    },
+                    "403": {
+                        "description": "Forbidden. User is not authorized to update this product.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "You are not authorized to update this product."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete product",
+                "description": "Deletes a product. Only the shop owner can delete it.",
+                "tags": [
+                    "Products"
+                ],
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The Product ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product removed successfully.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Product removed"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized. Missing or invalid token."
+                    },
+                    "403": {
+                        "description": "Forbidden. User is not authorized to delete this product.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "You are not authorized to delete this product."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/shops/{shopId}": {
+            "get": {
+                "summary": "Get products by Shop ID",
+                "description": "Retrieves a list of all products belonging to a specific shop.",
+                "tags": [
+                    "Products"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "shopId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The Shop ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of products for the shop.",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "_id": "64a0f8b13d2a1b00159cd11a",
+                                        "name": "Wireless Mouse",
+                                        "price": 1500,
+                                        "category": "Electronics",
+                                        "isAvailable": true,
+                                        "shopId": "60d0fe4f5311236168a109ca"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "message": "Internal server error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
