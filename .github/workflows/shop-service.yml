@@ -1,78 +1,78 @@
-# name: Shop Management Service CI/CD
+name: Shop Management Service CI/CD
 
-# on:
-#   push:
-#     # ShopManagementService ෆෝල්ඩරය තුළ වෙනසක් සිදු වූ විට පමණක් ක්‍රියාත්මක වේ
-#     paths:
-#       - 'ShopManagementService/**'
-#     branches: [ "main" ]
+on:
+  push:
+    # ShopManagementService ෆෝල්ඩරය තුළ වෙනසක් සිදු වූ විට පමණක් ක්‍රියාත්මක වේ
+    paths:
+      - 'ShopManagementService/**'
+    branches: [ "main" ]
 
-# jobs:
-#   build-and-push:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # 1. GitHub එකෙන් Code එක ලබා ගැනීම
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. GitHub එකෙන් Code එක ලබා ගැනීම
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#       # 2. Node.js පරිසරය සකස් කිරීම
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '20'
+      # 2. Node.js පරිසරය සකස් කිරීම
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-#       # 3. Dependencies Install කිරීම (Snyk පරීක්ෂාවට node_modules අවශ්‍යයි)
-#       - name: Install Dependencies
-#         run: npm install
-#         working-directory: ./ShopManagementService
+      # 3. Dependencies Install කිරීම (Snyk පරීක්ෂාවට node_modules අවශ්‍යයි)
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./ShopManagementService
 
-#       # 4. Snyk Security Scan (SAST Integration) - ලකුණු 20% සඳහා
-#       - name: Run Snyk to check for vulnerabilities
-#         uses: snyk/actions/node@master
-#         continue-on-error: true # ආරක්ෂක දෝෂ තිබුණත් පයිප්ලය ඉදිරියට ගෙන යාමට
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
-#         with:
-#           # සබ්-ෆෝල්ඩරයේ ඇති package.json එක පෙන්වීමට --file භාවිතා කරයි
-#           args: --severity-threshold=high --pkg-manager=npm --file=ShopManagementService/package.json
+      # 4. Snyk Security Scan (SAST Integration) - ලකුණු 20% සඳහා
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true # ආරක්ෂක දෝෂ තිබුණත් පයිප්ලය ඉදිරියට ගෙන යාමට
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_SHOP_MANAGEMENT }}
+        with:
+          # සබ්-ෆෝල්ඩරයේ ඇති package.json එක පෙන්වීමට --file භාවිතා කරයි
+          args: --severity-threshold=high --pkg-manager=npm --file=ShopManagementService/package.json
 
-#       # 5. Docker Hub වෙත ලොග් වීම
-#       - name: Login to Docker Hub
-#         uses: docker/login-action@v2
-#         with:
-#           username: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}
-#           password: ${{ secrets.DOCKER_PASSWORD_SHOP_MANAGEMENT }}
+      # 5. Docker Hub වෙත ලොග් වීම
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}
+          password: ${{ secrets.DOCKER_PASSWORD_SHOP_MANAGEMENT }}
 
-#       # 6. Docker Image එක build කරලා Push කිරීම
-#       - name: Build and push Docker image
-#         uses: docker/build-push-action@v4
-#         with:
-#           context: ./ShopManagementService
-#           push: true
-#           tags: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
+      # 6. Docker Image එක build කරලා Push කිරීම
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./ShopManagementService
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
 
-#           # 7. AWS Credentials Configure කිරීම
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v2
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+          # 7. AWS Credentials Configure කිරීම
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       # 8. Task Definition එක අලුත් Image එක සමඟ Update කිරීම
-#       - name: Fill in the new image ID in the Amazon ECS task definition
-#         id: task-def
-#         uses: aws-actions/amazon-ecs-render-task-definition@v1
-#         with:
-#           task-definition: ShopManagementService/task-definition.json
-#           container-name: shop-container # AWS එකේ ඇති Container නම මෙතැනට දෙන්න
-#           image: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
+      # 8. Task Definition එක අලුත් Image එක සමඟ Update කිරීම
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ShopManagementService/task-definition.json
+          container-name: shop-container # AWS එකේ ඇති Container නම මෙතැනට දෙන්න
+          image: ${{ secrets.DOCKER_USERNAME_SHOP_MANAGEMENT }}/shop-management-service:latest
 
-#       # 9. ECS Service එක අලුත් Task Definition එකෙන් Update කිරීම (Automated Deployment)
-#       - name: Deploy Amazon ECS task definition
-#         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#         with:
-#           task-definition: ${{ steps.task-def.outputs.task-definition }}
-#           service: shop-service # ඔයාගේ ECS Service නම මෙතැනට දෙන්න
-#           cluster: EcomCluster1 # ඔයාගේ ECS Cluster නම මෙතැනට දෙන්න
-#           wait-for-service-stability: true
+      # 9. ECS Service එක අලුත් Task Definition එකෙන් Update කිරීම (Automated Deployment)
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: shop-service # ඔයාගේ ECS Service නම මෙතැනට දෙන්න
+          cluster: EcomCluster1 # ඔයාගේ ECS Cluster නම මෙතැනට දෙන්න
+          wait-for-service-stability: true
