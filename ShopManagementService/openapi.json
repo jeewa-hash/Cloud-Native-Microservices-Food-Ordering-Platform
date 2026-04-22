@@ -1,567 +1,446 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-        "title": "Shop Management Microservice API",
-        "description": "API Specification for the Shop Management Microservice. Covers Shop and Product operations.",
-        "version": "1.0.0"
-    },
-    "servers": [
-        {
-            "url": "http://gateway-alb-943122502.eu-north-1.elb.amazonaws.com/api",
-            "description": "API Gateway Base URL"
-        }
-    ],
-    "components": {
-        "securitySchemes": {
-            "BearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            }
-        }
-    },
-    "paths": {
-        "/shops": {
-            "get": {
-                "summary": "Get all shops",
-                "description": "Retrieves a list of all shops from the User Authentication Service.",
-                "tags": [
-                    "Shops"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of all shops.",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "_id": "60d0fe4f5311236168a109ca",
-                                        "username": "super_shop",
-                                        "name": "Super Shop",
-                                        "logo": "https://example.com/logo.png"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Failed to fetch shops"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/shops/orders": {
-            "get": {
-                "summary": "Get shop orders",
-                "description": "Retrieves orders belonging to the authenticated shop via proxy to Order Management Service.",
-                "tags": [
-                    "Shops"
-                ],
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of shop orders.",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "_id": "60d0fe4f5311236168a110ab",
-                                        "customerName": "John Doe",
-                                        "totalAmount": 1500,
-                                        "status": "pending"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized. Missing or invalid token."
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Failed to fetch shop orders"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/shops/orders/{orderId}/status": {
-            "patch": {
-                "summary": "Update order status",
-                "description": "Updates the status of an order. Accessible only to the shop owner.",
-                "tags": [
-                    "Shops"
-                ],
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "orderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The ID of the order to update"
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "status": {
-                                        "type": "string",
-                                        "example": "shipped"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Order status updated successfully.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "_id": "60d0fe4f5311236168a110ab",
-                                    "status": "shipped"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request. Invalid data."
-                    },
-                    "401": {
-                        "description": "Unauthorized. Missing or invalid token."
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Failed to update order status"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/products": {
-            "post": {
-                "summary": "Add a new product",
-                "description": "Creates a new product associated with the authenticated shop.",
-                "tags": [
-                    "Products"
-                ],
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Wireless Mouse"
-                                    },
-                                    "price": {
-                                        "type": "number",
-                                        "example": 1500
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "High precision wireless mouse"
-                                    },
-                                    "image": {
-                                        "type": "string",
-                                        "example": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
-                                    },
-                                    "category": {
-                                        "type": "string",
-                                        "example": "Electronics"
-                                    },
-                                    "isAvailable": {
-                                        "type": "boolean",
-                                        "example": true
-                                    }
-                                },
-                                "required": [
-                                    "name",
-                                    "price",
-                                    "category"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Product created successfully.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "_id": "64a0f8b13d2a1b00159cd11a",
-                                    "name": "Wireless Mouse",
-                                    "price": 1500,
-                                    "description": "High precision wireless mouse",
-                                    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...",
-                                    "category": "Electronics",
-                                    "isAvailable": true,
-                                    "shopId": "60d0fe4f5311236168a109ca",
-                                    "shopName": "Super Shop",
-                                    "shopLogo": "https://example.com/logo.png"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request. Missing required data."
-                    },
-                    "401": {
-                        "description": "Unauthorized. Missing or invalid token."
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error processing the product creation"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "get": {
-                "summary": "Get all products",
-                "description": "Retrieves a list of all available products.",
-                "tags": [
-                    "Products"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of products.",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "_id": "64a0f8b13d2a1b00159cd11a",
-                                        "name": "Wireless Mouse",
-                                        "price": 1500,
-                                        "description": "High precision wireless mouse",
-                                        "category": "Electronics",
-                                        "isAvailable": true,
-                                        "shopId": "60d0fe4f5311236168a109ca"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/products/{id}": {
-            "get": {
-                "summary": "Get product by ID",
-                "description": "Retrieves details of a specific product by its ID.",
-                "tags": [
-                    "Products"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The Product ID"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of the product.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "_id": "64a0f8b13d2a1b00159cd11a",
-                                    "name": "Wireless Mouse",
-                                    "price": 1500,
-                                    "category": "Electronics",
-                                    "isAvailable": true,
-                                    "shopId": "60d0fe4f5311236168a109ca"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Product not found.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Product not found"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "summary": "Update product",
-                "description": "Updates an existing product. Only the shop owner can update it.",
-                "tags": [
-                    "Products"
-                ],
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The Product ID"
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Wireless Mouse (Updated)"
-                                    },
-                                    "price": {
-                                        "type": "number",
-                                        "example": 1600
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "A highly precise and ergonomic wireless mouse."
-                                    },
-                                    "category": {
-                                        "type": "string",
-                                        "example": "Electronics"
-                                    },
-                                    "isAvailable": {
-                                        "type": "boolean",
-                                        "example": true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Product updated successfully.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "_id": "64a0f8b13d2a1b00159cd11a",
-                                    "name": "Wireless Mouse (Updated)",
-                                    "price": 1600,
-                                    "description": "A highly precise and ergonomic wireless mouse.",
-                                    "category": "Electronics",
-                                    "isAvailable": true,
-                                    "shopId": "60d0fe4f5311236168a109ca"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request. Invalid data format."
-                    },
-                    "401": {
-                        "description": "Unauthorized. Missing or invalid token."
-                    },
-                    "403": {
-                        "description": "Forbidden. User is not authorized to update this product.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "You are not authorized to update this product."
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete product",
-                "description": "Deletes a product. Only the shop owner can delete it.",
-                "tags": [
-                    "Products"
-                ],
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The Product ID"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Product removed successfully.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Product removed"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized. Missing or invalid token."
-                    },
-                    "403": {
-                        "description": "Forbidden. User is not authorized to delete this product.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "You are not authorized to delete this product."
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/products/shops/{shopId}": {
-            "get": {
-                "summary": "Get products by Shop ID",
-                "description": "Retrieves a list of all products belonging to a specific shop.",
-                "tags": [
-                    "Products"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "shopId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The Shop ID"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of products for the shop.",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "_id": "64a0f8b13d2a1b00159cd11a",
-                                        "name": "Wireless Mouse",
-                                        "price": 1500,
-                                        "category": "Electronics",
-                                        "isAvailable": true,
-                                        "shopId": "60d0fe4f5311236168a109ca"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error.",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "message": "Internal server error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Shop Management Service API",
+    "version": "1.0.0",
+    "description": "API documentation for the Shop Management Microservice. Handles Shops and Products."
+  },
+  "servers": [
+    {
+      "url": "http://gateway-alb-624690862.eu-north-1.elb.amazonaws.com/api",
+      "description": "API Gateway"
     }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/shops": {
+      "get": {
+        "summary": "Retrieve all shops",
+        "description": "Fetch a list of all available shops.",
+        "tags": ["Shops"],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved shops",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "60d0fe4f5311236168a109ca",
+                    "username": "shop123",
+                    "name": "Pizza Paradise",
+                    "email": "contact@pizzaparadise.com",
+                    "phone": "+1234567890"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/orders": {
+      "get": {
+        "summary": "Retrieve shop orders",
+        "description": "Retrieve all orders placed for the authenticated shop.",
+        "tags": ["Shops"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved orders",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "_id": "60d0fe4f5311236168a109cb",
+                    "user": "60d0fe4f5311236168a109cc",
+                    "shopId": "60d0fe4f5311236168a109ca",
+                    "items": [
+                      {
+                        "product": "60d0fe4f5311236168a109cd",
+                        "quantity": 2,
+                        "price": 15.99
+                      }
+                    ],
+                    "totalAmount": 31.98,
+                    "status": "pending",
+                    "createdAt": "2023-10-25T10:30:00Z"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/shops/orders/{orderId}/status": {
+      "patch": {
+        "summary": "Update order status",
+        "description": "Update the status of a specific order for the authenticated shop.",
+        "tags": ["Shops"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the order to update.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "preparing",
+                    "enum": ["pending", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"]
+                  }
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated order status",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Order status updated successfully",
+                  "order": {
+                    "_id": "60d0fe4f5311236168a109cb",
+                    "status": "preparing"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid status)"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        }
+      }
+    },
+    "/products": {
+      "post": {
+        "summary": "Create a new product",
+        "description": "Add a new product for the authenticated shop.",
+        "tags": ["Products"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Pepperoni Pizza"
+                  },
+                  "price": {
+                    "type": "number",
+                    "example": 14.99
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Classic pizza with tomato sauce, mozzarella, and pepperoni."
+                  },
+                  "category": {
+                    "type": "string",
+                    "example": "Main Course"
+                  },
+                  "image": {
+                    "type": "string",
+                    "example": "https://example.com/pizza.jpg"
+                  },
+                  "isAvailable": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                },
+                "required": ["name", "price", "category"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "_id": "60d0fe4f5311236168a109d1",
+                  "name": "Pepperoni Pizza",
+                  "price": 14.99,
+                  "description": "Classic pizza with tomato sauce, mozzarella, and pepperoni.",
+                  "category": "Main Course",
+                  "image": "https://example.com/pizza.jpg",
+                  "isAvailable": true,
+                  "shopId": "60d0fe4f5311236168a109ca",
+                  "createdAt": "2023-10-25T11:00:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "summary": "Retrieve all products",
+        "description": "Fetch a list of all products in the system.",
+        "tags": ["Products"],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved products",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "_id": "60d0fe4f5311236168a109d1",
+                    "name": "Pepperoni Pizza",
+                    "price": 14.99,
+                    "description": "Classic pizza with tomato sauce, mozzarella, and pepperoni.",
+                    "category": "Main Course",
+                    "image": "https://example.com/pizza.jpg",
+                    "isAvailable": true,
+                    "shopId": "60d0fe4f5311236168a109ca"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get a single product",
+        "description": "Fetch a specific product by its ID.",
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the product",
+            "content": {
+              "application/json": {
+                "example": {
+                  "_id": "60d0fe4f5311236168a109d1",
+                  "name": "Pepperoni Pizza",
+                  "price": 14.99,
+                  "description": "Classic pizza with tomato sauce, mozzarella, and pepperoni.",
+                  "category": "Main Course",
+                  "image": "https://example.com/pizza.jpg",
+                  "isAvailable": true,
+                  "shopId": "60d0fe4f5311236168a109ca"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a product",
+        "description": "Update an existing product for the authenticated shop.",
+        "tags": ["Products"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Spicy Pepperoni Pizza" },
+                  "price": { "type": "number", "example": 15.99 },
+                  "description": { "type": "string", "example": "Spicy version of our classic pizza." },
+                  "category": { "type": "string", "example": "Main Course" },
+                  "image": { "type": "string", "example": "https://example.com/spicypizza.jpg" },
+                  "isAvailable": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "_id": "60d0fe4f5311236168a109d1",
+                  "name": "Spicy Pepperoni Pizza",
+                  "price": 15.99,
+                  "description": "Spicy version of our classic pizza.",
+                  "category": "Main Course",
+                  "image": "https://example.com/spicypizza.jpg",
+                  "isAvailable": true,
+                  "shopId": "60d0fe4f5311236168a109ca"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden (Not the product owner)"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a product",
+        "description": "Remove a product. Requires authenticated shop that owns the product.",
+        "tags": ["Products"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product deleted successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden (Not the product owner)"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/shops/{shopId}": {
+      "get": {
+        "summary": "Get all products by shop",
+        "description": "Fetch a list of products that belong to a specific shop ID.",
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the shop",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved products for the shop",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "_id": "60d0fe4f5311236168a109d1",
+                    "name": "Pepperoni Pizza",
+                    "price": 14.99,
+                    "description": "Classic pizza with tomato sauce, mozzarella, and pepperoni.",
+                    "category": "Main Course",
+                    "image": "https://example.com/pizza.jpg",
+                    "isAvailable": true,
+                    "shopId": "60d0fe4f5311236168a109ca"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

@@ -68,8 +68,8 @@ mongoose
     // Database එක සම්බන්ධ වූ පසු පමණක් Server එක ආරම්භ වේ
     app.listen(port, () => {
       // CI/CD පරීක්ෂාව සඳහා එක් කළ පණිවිඩය
-      console.log('CI/CD Pipeline Test: New build deployed and running successfully!');
-      console.log(`Server is running on port: ${port}`);
+      console.log('CI/CD Pipeline Test: New build deployed and running successfully! 22/04/2026');
+      console.log(`04/26 Server is running on port: ${port}`);
     });
   })
   .catch((err) => {
