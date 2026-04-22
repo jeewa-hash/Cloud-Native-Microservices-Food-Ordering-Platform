@@ -18,11 +18,11 @@
             "environment": [
                 {
                     "name": "AUTH_SERVICE_URL",
-                    "value": "http://auth-alb-1706945340.eu-north-1.elb.amazonaws.com"
+                    "value": "http://auth-alb-1666988854.eu-north-1.elb.amazonaws.com"
                 },
                 {
                     "name": "ORDER_SERVICE_URL",
-                    "value": "http://order-alb-1411336470.eu-north-1.elb.amazonaws.com"
+                    "value": "http://order-alb-1005949791.eu-north-1.elb.amazonaws.com"
                 },
                 {
                     "name": "PORT",
@@ -34,7 +34,7 @@
                 },
                 {
                     "name": "FRONTEND_URL",
-                    "value": "http://frontend-nethmi.s3-website.eu-north-1.amazonaws.com"
+                    "value": "http://ecomnethmi.s3-website.eu-north-1.amazonaws.com"
                 },
                 {
                     "name": "MONGO_URI",
@@ -52,7 +52,7 @@
             }
         }
     ],
-    "executionRoleArn": "arn:aws:iam::386403274306:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::516027199541:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "requiresCompatibilities": [
         "FARGATE"

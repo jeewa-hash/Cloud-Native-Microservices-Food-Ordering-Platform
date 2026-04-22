@@ -28,7 +28,7 @@ async function test() {
         }
     };
 
-    const token = jwt.sign(payload, "fallback_secret_key", { expiresIn: '1d' });
+    const token = jwt.sign(payload, "super_secret_jwt_key_here", { expiresIn: '1d' });
     console.log("Token generated locally.");
 
     const productPayload = {
@@ -42,7 +42,7 @@ async function test() {
     };
 
     try {
-        const response = await axios.post('http://localhost:4040/api/products', productPayload, {
+        const response = await axios.post('http://gateway-alb-624690862.eu-north-1.elb.amazonaws.com/api/products', productPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         console.log("SUCCESS:", response.data);

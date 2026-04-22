@@ -6,11 +6,15 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
-// --- සර්විස් වල පාරවල් (Target URLs) ---
-const AUTH_SERVICE = 'http://auth-alb-1706945340.eu-north-1.elb.amazonaws.com';
-const ORDER_SERVICE = 'http://order-alb-1411336470.eu-north-1.elb.amazonaws.com';
-const SHOP_SERVICE = 'http://shop-alb-1163828963.eu-north-1.elb.amazonaws.com';
+// // --- සර්විස් වල පාරවල් (Target URLs) ---
+// const AUTH_SERVICE = 'http://auth-alb-1706945340.eu-north-1.elb.amazonaws.com';
+// const ORDER_SERVICE = 'http://order-alb-1411336470.eu-north-1.elb.amazonaws.com';
+// const SHOP_SERVICE = 'http://shop-alb-1163828963.eu-north-1.elb.amazonaws.com';
 
+
+const AUTH_SERVICE = 'http://auth-alb-1666988854.eu-north-1.elb.amazonaws.com';
+const ORDER_SERVICE = 'http://order-alb-1005949791.eu-north-1.elb.amazonaws.com';
+const SHOP_SERVICE = 'http://shop-alb-883151970.eu-north-1.elb.amazonaws.com';
 // 1. Auth Service - පාර වෙනස් නොකර සම්පූර්ණයෙන්ම යැවීමට
 app.use('/api/auth', createProxyMiddleware({
     target: AUTH_SERVICE,

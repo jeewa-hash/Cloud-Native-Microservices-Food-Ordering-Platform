@@ -74,5 +74,5 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: shop-service # ඔයාගේ ECS Service නම මෙතැනට දෙන්න
-          cluster: EcomCluster1 # ඔයාගේ ECS Cluster නම මෙතැනට දෙන්න
+          cluster: EcomCluster # ඔයාගේ ECS Cluster නම මෙතැනට දෙන්න
           wait-for-service-stability: true
