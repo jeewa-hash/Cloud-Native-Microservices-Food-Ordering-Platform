@@ -44,7 +44,7 @@ app.use('/api/shops', shopRoutes);
 
 //TO show ci cd pipe line is working
 app.get('/', (req, res) => {
-  res.send('<h1>🚀 CI/CD Pipeline Test: SUCCESS!</h1><p>Hello</p>');
+  res.send('<h1>🚀 CI/CD Pipeline Test: SUCCESS!</h1><p>Hello..</p>');
 });
 
 // // Base Route
